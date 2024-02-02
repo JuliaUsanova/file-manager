@@ -1,0 +1,23 @@
+{
+    "name": "file-manager",
+    "version": "1.0.0",
+    "description": "This repository is the part of nodejs-assignments in RSScool",
+    "engines": {
+      "node": ">=20.0.0"
+    },
+    "type": "module",
+    "scripts": {
+      "start": "node src/main.js --username"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/JuliaUsanova/file-manager.git"
+    },
+    "keywords": [
+      "nodejs"
+    ],
+    "author": "Julia Usanova",
+    "license": "MIT",
+    "homepage": "https://github.com/JuliaUsanova/file-manager?tab=readme-ov-file"
+  }
+  
