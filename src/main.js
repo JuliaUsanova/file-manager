@@ -2,7 +2,13 @@ import * as readline from 'node:readline/promises';
 import { readdir } from 'node:fs/promises';
 import { stdin as input, stdout as output, cwd, chdir } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
-import { startingDir, goToPath, getUpperPath } from './module/utils.mjs';
+import {
+	startingDir,
+	goToPath,
+	getUpperPath,
+	getNormalPath
+} from './module/utils.mjs';
+import { createReadStream } from 'node:fs';
 
 // HANDLERS
 
@@ -31,6 +37,15 @@ const getPrompt = () => {
 	return `\nYou are currently in ${cwd()} \n`;
 };
 
+const catFileContent = (fileName) => {
+	const inputPath = getNormalPath(fileName);
+	createReadStream(inputPath)
+		.on('error', () => {
+			showInputErrorMessage();
+		})
+		.pipe(output);
+};
+
 const executeOperation = (operation) => {
 	try {
 		operation();
@@ -55,6 +70,8 @@ const handleOperation = async (command) => {
 		executeOperation(() => goToPath(command.slice(3)));
 	} else if (command === 'ls') {
 		executeOperation(() => listContent(cwd()));
+	} else if (command.startsWith('cat ')) {
+		catFileContent(command.slice(4));
 	} else {
 		showInputErrorMessage();
 	}
