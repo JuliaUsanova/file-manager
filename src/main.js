@@ -3,8 +3,7 @@ import { capitalize, getUserName } from './module/utils.mjs';
 import { startingDir } from './module/utils.mjs';
 import { FileManager } from './module/file-manager.mjs';
 
-// MAIN
-async function main() {
+function main() {
 	const username = capitalize(getUserName());
 
 	chdir(startingDir());

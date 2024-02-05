@@ -1,9 +1,10 @@
 import { createReadStream } from 'node:fs';
-import { readdir, open, rename } from 'node:fs/promises';
+import { readdir, open, rename, cp } from 'node:fs/promises';
 import { getUpperPath, getNormalPath, goToPath } from './utils.mjs';
 import {
-	showInputErrorMessage,
-	showExecutionErrorMessage
+	showExecutionErrorMessage,
+	InputErrorMessage,
+	ExecutionErrorMessage
 } from './error-handlers.mjs';
 import { stdout as output, cwd } from 'node:process';
 
@@ -13,42 +14,33 @@ export class InputHandler {
 			this.executeOperation(getUpperPath);
 		} else if (command.startsWith('cd ')) {
 			const param = command.slice(3);
-			const isValidParam = this.validateParams(param);
-			if (!isValidParam) {
-				return showInputErrorMessage();
-			}
+			this.validateParams(param);
 
 			this.executeOperation(() => goToPath(param));
 		} else if (command === 'ls') {
 			this.executeOperation(() => this.listContent(cwd()));
 		} else if (command.startsWith('cat ')) {
 			const param = command.slice(4);
-			const isValidParam = this.validateParams(param);
-			if (!isValidParam) {
-				return showInputErrorMessage();
-			}
+			this.validateParams(param);
 
 			this.catFileContent(param);
 		} else if (command.startsWith('add ')) {
 			const param = command.slice(4);
-			const isValidParam = this.validateParams(param);
-			if (!isValidParam) {
-				return showInputErrorMessage();
-			}
+			this.validateParams(param);
 
 			this.executeOperation(async () => await this.addNewFile(param));
 		} else if (command.startsWith('rn ')) {
 			const param = command.slice(3);
-			const isValidParam = this.validateParams(param);
-			if (!isValidParam) {
-				return showInputErrorMessage();
-			}
+			this.validateParams(param);
 
-			this.executeOperation(() =>
-				this.renameFile(...param.split(' '))
-			);
+			this.executeOperation(() => this.renameFile(...param.split(' ')));
+		} else if (command.startsWith('cp ')) {
+			const param = command.slice(3);
+			this.validateParams(param);
+
+			this.executeOperation(() => this.copyFile(...param.split(' ')));
 		} else {
-			showInputErrorMessage();
+			throw new Error(InputErrorMessage);
 		}
 	}
 
@@ -56,20 +48,19 @@ export class InputHandler {
 		try {
 			await operation();
 		} catch {
-			showExecutionErrorMessage();
+			throw new Error(ExecutionErrorMessage);
 		}
 	}
 
 	validateParams(params) {
 		if (params.trim().length === 0) {
-			return false;
+			throw new Error(ExecutionErrorMessage);
 		}
-		return true;
 	}
 
 	async addNewFile(filePath) {
 		const inputPath = getNormalPath(filePath);
-	
+
 		await open(inputPath, 'wx');
 	}
 
@@ -108,5 +99,16 @@ export class InputHandler {
 		const newPath = getNormalPath(newFilePath);
 
 		await rename(inputPath, newPath);
+	}
+
+	async copyFile(sourceFilePath, targetFilePath) {
+		const inputPath = getNormalPath(sourceFilePath);
+		const targetPath = getNormalPath(targetFilePath);
+
+		await cp(inputPath, targetPath, {
+			recursive: true,
+			errorOnExist: true,
+			force: false
+		});
 	}
 }

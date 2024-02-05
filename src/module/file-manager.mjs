@@ -42,7 +42,11 @@ export class FileManager {
 		if (userInput === '.exit') {
 			this.rl.close();
 		} else if (userInput.trim().length > 0) {
-			await this.handler.resolve(userInput);
+            try {
+                await this.handler.resolve(userInput);
+            } catch (error) {
+                console.error(error);
+            }
 
 			this.showPrompt();
 		}
