@@ -1,5 +1,5 @@
 import * as readline from 'node:readline/promises';
-import { readdir } from 'node:fs/promises';
+import { readdir, open } from 'node:fs/promises';
 import { stdin as input, stdout as output, cwd, chdir } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
 import {
@@ -46,6 +46,11 @@ const catFileContent = (fileName) => {
 		.pipe(output);
 };
 
+const addNewFile = async (fileName) => {
+	const inputPath = getNormalPath(command.slice(4));
+	await open(inputPath, 'wx');
+};
+
 const executeOperation = (operation) => {
 	try {
 		operation();
@@ -72,6 +77,8 @@ const handleOperation = async (command) => {
 		executeOperation(() => listContent(cwd()));
 	} else if (command.startsWith('cat ')) {
 		catFileContent(command.slice(4));
+	} else if (command.startsWith('add ')) {
+		executeOperation(() => addNewFile(command.slice(4)));
 	} else {
 		showInputErrorMessage();
 	}
@@ -83,7 +90,7 @@ async function main() {
 		input,
 		output
 	});
-  
+
 	const username = capitalize(getUserName());
 
 	chdir(startingDir());
