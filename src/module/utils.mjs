@@ -21,7 +21,12 @@ export const getRootDir = () => path.parse(cwd()).root;
 
 export const getParentDir = (currentPath) => path.dirname(currentPath);
 
-export const getNormalPath = (inputPath) => path.normalize(inputPath);
+export const getNormalPath = (inputPath) => {
+	if (path.isAbsolute(inputPath)) {
+		return path.normalize(inputPath);
+	}
+	return path.resolve(cwd(), path.normalize(inputPath));
+};
 
 export const goToPath = (inputPath) => {
 	chdir(getNormalPath(inputPath));

@@ -1,5 +1,6 @@
 import { createReadStream, createWriteStream } from 'node:fs';
-import { readdir, open, rename } from 'node:fs/promises';
+import { readdir, open, rename, rm } from 'node:fs/promises';
+import { finished } from 'node:stream/promises';
 import { getUpperPath, getNormalPath, goToPath } from './utils.mjs';
 import {
 	showExecutionErrorMessage,
@@ -39,6 +40,11 @@ export class InputHandler {
 			this.validateParams(param);
 
 			this.executeOperation(() => this.copyFile(...param.split(' ')));
+		} else if (command.startsWith('mv ')) {
+			const param = command.slice(3);
+			this.validateParams(param);
+
+			this.executeOperation(async () => await this.moveFile(...param.split(' ')));
 		} else {
 			throw new Error(InputErrorMessage);
 		}
@@ -109,5 +115,19 @@ export class InputHandler {
 		const destStream = createWriteStream(targetPath);
 
 		srcStream.pipe(destStream);
+	}
+
+	async moveFile(sourceFilePath, targetFilePath) {
+		const inputPath = getNormalPath(sourceFilePath);
+		const targetPath = getNormalPath(targetFilePath);
+
+		const srcStream = createReadStream(inputPath);
+		const destStream = createWriteStream(targetPath);
+
+		srcStream.pipe(destStream);
+
+		await finished(srcStream);
+
+		await rm(inputPath);
 	}
 }
