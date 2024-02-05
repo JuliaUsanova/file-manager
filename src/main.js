@@ -1,30 +1,64 @@
 import * as readline from 'node:readline/promises';
-import { stdin as input, stdout as output, cwd, argv } from 'node:process';
+import { stdin as input, stdout as output } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
+import { startingDir, getRootDir, getParentDir } from './module/utils.mjs';
+import path from 'node:path';
 
-const handleReply = (reply) => {
-	console.log(`Received: ${reply}`);
+// HANDLERS
+const getUpperPath = () => {
+	if (currentPath !== getRootDir()) {
+		currentPath = getParentDir(currentPath);
+	}
+};
+
+let currentPath = startingDir();
+
+const getPrompt = () => {
+	return `\nYou are currently in ${currentPath} \n`;
+};
+
+// ERROR HANDLING
+const showInputErrorMessage = (message = 'Invalid input') => {
+	console.log(message);
+};
+
+const showExecutionErrorMessage = (message = 'Operation failed') => {
+	console.log(message);
+};
+
+const handleOperation = (command) => {
+	switch (command) {
+		case 'up':
+			getUpperPath();
+			break;
+		default:
+			showInputErrorMessage();
+	}
 };
 
 // MAIN
-function main() {
+async function main() {
 	const rl = readline.createInterface({
 		input,
 		output
 	});
 	const username = capitalize(getUserName());
 
-	rl.question(`Welcome to the File Manager, ${username}! `);
+	await rl.question(`Welcome to the File Manager, ${username}! `);
 
 	rl.on('line', (input) => {
 		if (input === '.exit') {
 			rl.close();
 		} else if (input.trim().length > 0) {
-			handleReply(input);
+			handleOperation(input);
 
-			rl.setPrompt(`You are currently in ${cwd()}`);
+			rl.setPrompt(getPrompt());
 			rl.prompt();
 		}
+	});
+
+	rl.on('SIGINT', () => {
+		rl.close();
 	});
 
 	rl.on('close', () => {
