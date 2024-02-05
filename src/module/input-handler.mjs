@@ -1,5 +1,5 @@
-import { createReadStream } from 'node:fs';
-import { readdir, open, rename, cp } from 'node:fs/promises';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { readdir, open, rename } from 'node:fs/promises';
 import { getUpperPath, getNormalPath, goToPath } from './utils.mjs';
 import {
 	showExecutionErrorMessage,
@@ -101,14 +101,13 @@ export class InputHandler {
 		await rename(inputPath, newPath);
 	}
 
-	async copyFile(sourceFilePath, targetFilePath) {
+	copyFile(sourceFilePath, targetFilePath) {
 		const inputPath = getNormalPath(sourceFilePath);
 		const targetPath = getNormalPath(targetFilePath);
 
-		await cp(inputPath, targetPath, {
-			recursive: true,
-			errorOnExist: true,
-			force: false
-		});
+		const srcStream = createReadStream(inputPath);
+		const destStream = createWriteStream(targetPath);
+
+		srcStream.pipe(destStream);
 	}
 }
