@@ -1,19 +1,18 @@
 import * as readline from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
+import { stdin as input, stdout as output, cwd, chdir } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
 import { startingDir, getRootDir, getParentDir } from './module/utils.mjs';
 
 // HANDLERS
 const getUpperPath = () => {
+	const currentPath = cwd();
 	if (currentPath !== getRootDir()) {
-		currentPath = getParentDir(currentPath);
+		chdir(getParentDir(currentPath));
 	}
 };
 
-let currentPath = startingDir();
-
 const getPrompt = () => {
-	return `\nYou are currently in ${currentPath} \n`;
+	return `\nYou are currently in ${cwd()} \n`;
 };
 
 // ERROR HANDLING
@@ -42,6 +41,8 @@ async function main() {
 		output
 	});
 	const username = capitalize(getUserName());
+
+	chdir(startingDir());
 
 	await rl.question(`Welcome to the File Manager, ${username}! `);
 
