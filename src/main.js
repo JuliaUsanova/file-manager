@@ -1,35 +1,42 @@
 import * as readline from 'node:readline/promises';
+import { readdir } from 'node:fs/promises';
 import { stdin as input, stdout as output, cwd, chdir } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
-import {
-	startingDir,
-	getRootDir,
-	getParentDir,
-	getNormalPath
-} from './module/utils.mjs';
+import { startingDir, goToPath, getUpperPath } from './module/utils.mjs';
 
 // HANDLERS
-const getUpperPath = () => {
-	const currentPath = cwd();
-	if (currentPath !== getRootDir()) {
-		try {
-			chdir(getParentDir(currentPath));
-		} catch (_) {
-			showExecutionErrorMessage();
-		}
-	}
-};
 
-const goToPath = (inputPath) => {
-	try {
-		chdir(getNormalPath(inputPath));
-	} catch (_) {
-		showExecutionErrorMessage();
-	}
+const listContent = async (currentPath) => {
+	const result = await readdir(currentPath, { withFileTypes: true });
+
+	const sortedResult = result
+		.sort((a, b) => {
+			if (a.isDirectory() && !b.isDirectory()) {
+				return -1;
+			} else if (!a.isDirectory() && b.isDirectory()) {
+				return 1;
+			} else {
+				return a.name.localeCompare(b.name);
+			}
+		})
+		.map((item) => ({
+			Name: item.name,
+			Type: item.isDirectory() ? 'directory' : 'file'
+		}));
+
+	console.table(sortedResult);
 };
 
 const getPrompt = () => {
 	return `\nYou are currently in ${cwd()} \n`;
+};
+
+const executeOperation = (operation) => {
+	try {
+		operation();
+	} catch {
+		showExecutionErrorMessage();
+	}
 };
 
 // ERROR HANDLING
@@ -41,11 +48,13 @@ const showExecutionErrorMessage = (message = '\nOperation failed') => {
 	console.log(`\x1b[31m ${message}\x1b[0m`);
 };
 
-const handleOperation = (command) => {
+const handleOperation = async (command) => {
 	if (command === 'up') {
-		getUpperPath();
+		executeOperation(getUpperPath);
 	} else if (command.startsWith('cd ')) {
-		goToPath(command.slice(3));
+		executeOperation(() => goToPath(command.slice(3)));
+	} else if (command === 'ls') {
+		executeOperation(() => listContent(cwd()));
 	} else {
 		showInputErrorMessage();
 	}
@@ -90,9 +99,9 @@ async function main() {
 	});
 
 	rl.on('close', () => {
-		console.log(
-			`\nThank you for using File Manager, ${username}, goodbye!!\n`
-		);
+		const message = `Thank you for using File Manager, ${username}, goodbye!!`;
+
+		console.log(`\n\x1b[32m ${message}\x1b[0m \n`);
 	});
 }
 

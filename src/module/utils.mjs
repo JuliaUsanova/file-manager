@@ -1,4 +1,4 @@
-import { argv, cwd } from 'node:process';
+import { argv, cwd, chdir } from 'node:process';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
@@ -22,3 +22,14 @@ export const getRootDir = () => path.parse(cwd()).root;
 export const getParentDir = (currentPath) => path.dirname(currentPath);
 
 export const getNormalPath = (inputPath) => path.normalize(inputPath);
+
+export const goToPath = (inputPath) => {
+	chdir(getNormalPath(inputPath));
+};
+
+export const getUpperPath = () => {
+	const currentPath = cwd();
+	if (currentPath !== getRootDir()) {
+		chdir(getParentDir(currentPath));
+	}
+};
