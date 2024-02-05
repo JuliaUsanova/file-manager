@@ -45,6 +45,11 @@ export class InputHandler {
 			this.validateParams(param);
 
 			this.executeOperation(async () => await this.moveFile(...param.split(' ')));
+		} else if (command.startsWith('rm ')) {
+			const param = command.slice(3);
+			this.validateParams(param);
+
+			this.executeOperation(async () => await this.deleteFile(param));
 		} else {
 			throw new Error(InputErrorMessage);
 		}
@@ -54,7 +59,7 @@ export class InputHandler {
 		try {
 			await operation();
 		} catch {
-			throw new Error(ExecutionErrorMessage);
+			showExecutionErrorMessage();
 		}
 	}
 
@@ -129,5 +134,11 @@ export class InputHandler {
 		await finished(srcStream);
 
 		await rm(inputPath);
+	}
+
+	async deleteFile(filePath) {
+		const inputPath = getNormalPath(filePath);
+
+		return await rm(inputPath);
 	}
 }
