@@ -2,7 +2,6 @@ import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
 import { startingDir, getRootDir, getParentDir } from './module/utils.mjs';
-import path from 'node:path';
 
 // HANDLERS
 const getUpperPath = () => {
