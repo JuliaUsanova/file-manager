@@ -8,6 +8,7 @@ import {
 	ExecutionErrorMessage
 } from './error-handlers.mjs';
 import { stdout as output, cwd } from 'node:process';
+import { EOL, cpus, homedir, userInfo, arch } from 'node:os';
 
 export class InputHandler {
 	async resolve(command) {
@@ -44,14 +45,42 @@ export class InputHandler {
 			const param = command.slice(3);
 			this.validateParams(param);
 
-			this.executeOperation(async () => await this.moveFile(...param.split(' ')));
+			this.executeOperation(
+				async () => await this.moveFile(...param.split(' '))
+			);
 		} else if (command.startsWith('rm ')) {
 			const param = command.slice(3);
 			this.validateParams(param);
 
 			this.executeOperation(async () => await this.deleteFile(param));
+		} else if (command.startsWith('os ')) {
+			const param = command.slice(3);
+			this.validateParams(param);
+
+			this.executeOperation(() => this.handleOSCommands(param.slice(2)));
 		} else {
 			throw new Error(InputErrorMessage);
+		}
+	}
+
+	handleOSCommands(param) {
+		switch (param) {
+			case 'EOL':
+				console.log(EOL);
+			case 'cpus':
+				console.table(cpus().map((cpu) => ({ Model: cpu.model, ClockRate: cpu.speed })));
+				break;
+			case 'homedir':
+				console.log(homedir());
+				break;
+			case 'username':
+				console.log(userInfo().username);
+				break;
+			case 'architecture':
+				console.log(arch());
+				break;
+			default:
+				throw new Error(InputErrorMessage);
 		}
 	}
 
