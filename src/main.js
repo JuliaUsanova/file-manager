@@ -66,6 +66,7 @@ async function main() {
 		input,
 		output
 	});
+  
 	const username = capitalize(getUserName());
 
 	chdir(startingDir());
