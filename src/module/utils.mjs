@@ -22,10 +22,10 @@ export const getRootDir = () => path.parse(cwd()).root;
 export const getParentDir = (currentPath) => path.dirname(currentPath);
 
 export const getNormalPath = (inputPath) => {
-	if (path.isAbsolute(inputPath)) {
-		return path.normalize(inputPath);
+	if (path.isAbsolute(inputPath.trim())) {
+		return path.normalize(inputPath.trim());
 	}
-	return path.resolve(cwd(), path.normalize(inputPath));
+	return path.resolve(cwd(), path.normalize(inputPath.trim()));
 };
 
 export const goToPath = (inputPath) => {

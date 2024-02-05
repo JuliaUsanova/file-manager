@@ -9,6 +9,7 @@ import {
 } from './error-handlers.mjs';
 import { stdout as output, cwd } from 'node:process';
 import { EOL, cpus, homedir, userInfo, arch } from 'node:os';
+import { createHash } from 'node:crypto';
 
 export class InputHandler {
 	async resolve(command) {
@@ -58,6 +59,11 @@ export class InputHandler {
 			this.validateParams(param);
 
 			this.executeOperation(() => this.handleOSCommands(param.slice(2)));
+		} else if (command.startsWith('hash ')) {
+			const param = command.slice(5);
+			this.validateParams(param);
+
+			this.executeOperation(() => this.calculateHash(param));
 		} else {
 			throw new Error(InputErrorMessage);
 		}
@@ -68,7 +74,12 @@ export class InputHandler {
 			case 'EOL':
 				console.log(EOL);
 			case 'cpus':
-				console.table(cpus().map((cpu) => ({ Model: cpu.model, ClockRate: cpu.speed })));
+				console.table(
+					cpus().map((cpu) => ({
+						Model: cpu.model,
+						ClockRate: cpu.speed
+					}))
+				);
 				break;
 			case 'homedir':
 				console.log(homedir());
@@ -169,5 +180,19 @@ export class InputHandler {
 		const inputPath = getNormalPath(filePath);
 
 		return await rm(inputPath);
+	}
+
+	calculateHash(filePath) {
+		const hash = createHash('sha256');
+		const inputPath = getNormalPath(filePath);
+		const content = createReadStream(inputPath);
+
+		content
+			.on('error', () => {
+				showExecutionErrorMessage();
+			})
+			.pipe(hash)
+			.setEncoding('hex')
+			.pipe(output);
 	}
 }
