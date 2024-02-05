@@ -1,13 +1,30 @@
 import * as readline from 'node:readline/promises';
 import { stdin as input, stdout as output, cwd, chdir } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
-import { startingDir, getRootDir, getParentDir } from './module/utils.mjs';
+import {
+	startingDir,
+	getRootDir,
+	getParentDir,
+	getNormalPath
+} from './module/utils.mjs';
 
 // HANDLERS
 const getUpperPath = () => {
 	const currentPath = cwd();
 	if (currentPath !== getRootDir()) {
-		chdir(getParentDir(currentPath));
+		try {
+			chdir(getParentDir(currentPath));
+		} catch (_) {
+			showExecutionErrorMessage();
+		}
+	}
+};
+
+const goToPath = (inputPath) => {
+	try {
+		chdir(getNormalPath(inputPath));
+	} catch (_) {
+		showExecutionErrorMessage();
 	}
 };
 
@@ -16,21 +33,21 @@ const getPrompt = () => {
 };
 
 // ERROR HANDLING
-const showInputErrorMessage = (message = 'Invalid input') => {
-	console.log(message);
+const showInputErrorMessage = (message = '\nInvalid input') => {
+	console.log(`\x1b[33m ${message}\x1b[0m`);
 };
 
-const showExecutionErrorMessage = (message = 'Operation failed') => {
-	console.log(message);
+const showExecutionErrorMessage = (message = '\nOperation failed') => {
+	console.log(`\x1b[31m ${message}\x1b[0m`);
 };
 
 const handleOperation = (command) => {
-	switch (command) {
-		case 'up':
-			getUpperPath();
-			break;
-		default:
-			showInputErrorMessage();
+	if (command === 'up') {
+		getUpperPath();
+	} else if (command.startsWith('cd ')) {
+		goToPath(command.slice(3));
+	} else {
+		showInputErrorMessage();
 	}
 };
 
@@ -44,13 +61,24 @@ async function main() {
 
 	chdir(startingDir());
 
-	await rl.question(`Welcome to the File Manager, ${username}! `);
+	const userInput = await rl.question(
+		`\nWelcome to the File Manager, ${username}! \n`
+	);
 
-	rl.on('line', (input) => {
-		if (input === '.exit') {
+	if (userInput === '.exit') {
+		rl.close();
+	} else if (userInput.trim().length > 0) {
+		handleOperation(userInput);
+
+		rl.setPrompt(getPrompt());
+		rl.prompt();
+	}
+
+	rl.on('line', (userInput) => {
+		if (userInput === '.exit') {
 			rl.close();
-		} else if (input.trim().length > 0) {
-			handleOperation(input);
+		} else if (userInput.trim().length > 0) {
+			handleOperation(userInput);
 
 			rl.setPrompt(getPrompt());
 			rl.prompt();
@@ -62,7 +90,9 @@ async function main() {
 	});
 
 	rl.on('close', () => {
-		console.log(`Thank you for using File Manager, ${username}, goodbye!!`);
+		console.log(
+			`\nThank you for using File Manager, ${username}, goodbye!!\n`
+		);
 	});
 }
 

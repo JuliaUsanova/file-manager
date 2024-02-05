@@ -20,3 +20,5 @@ export const startingDir = () => homedir();
 export const getRootDir = () => path.parse(cwd()).root;
 
 export const getParentDir = (currentPath) => path.dirname(currentPath);
+
+export const getNormalPath = (inputPath) => path.normalize(inputPath);
