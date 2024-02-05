@@ -1,5 +1,5 @@
 import * as readline from 'node:readline/promises';
-import { readdir, open } from 'node:fs/promises';
+import { readdir, open, rename } from 'node:fs/promises';
 import { stdin as input, stdout as output, cwd, chdir } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
 import {
@@ -41,9 +41,16 @@ const catFileContent = (fileName) => {
 	const inputPath = getNormalPath(fileName);
 	createReadStream(inputPath)
 		.on('error', () => {
-			showInputErrorMessage();
+			showExecutionErrorMessage();
 		})
 		.pipe(output);
+};
+
+const renameFile = async (oldFilePath, newFilePath) => {
+	const inputPath = getNormalPath(oldFilePath);
+	const newPath = getNormalPath(newFilePath);
+
+	await rename(inputPath, newPath);
 };
 
 const addNewFile = async (fileName) => {
@@ -51,9 +58,9 @@ const addNewFile = async (fileName) => {
 	await open(inputPath, 'wx');
 };
 
-const executeOperation = (operation) => {
+const executeOperation = async (operation) => {
 	try {
-		operation();
+		await operation();
 	} catch {
 		showExecutionErrorMessage();
 	}
@@ -72,13 +79,35 @@ const handleOperation = async (command) => {
 	if (command === 'up') {
 		executeOperation(getUpperPath);
 	} else if (command.startsWith('cd ')) {
-		executeOperation(() => goToPath(command.slice(3)));
+		const argValue = command.slice(3);
+		if (argValue.trim().length === 0) {
+			showInputErrorMessage();
+			return false;
+		}
+		executeOperation(() => goToPath(argValue));
 	} else if (command === 'ls') {
 		executeOperation(() => listContent(cwd()));
 	} else if (command.startsWith('cat ')) {
-		catFileContent(command.slice(4));
+		const argValue = command.slice(4);
+		if (argValue.trim().length === 0) {
+			showInputErrorMessage();
+			return false;
+		}
+		catFileContent(argValue);
 	} else if (command.startsWith('add ')) {
-		executeOperation(() => addNewFile(command.slice(4)));
+		const argValue = command.slice(4);
+		if (argValue.trim().length === 0) {
+			showInputErrorMessage();
+			return false;
+		}
+		executeOperation(() => addNewFile(argValue));
+	} else if (command.startsWith('rn ')) {
+		const argValue = command.slice(3);
+		if (argValue.trim().length === 0) {
+			showInputErrorMessage();
+			return false;
+		}
+		executeOperation(() => renameFile(...command.slice(3).split(' ')));
 	} else {
 		showInputErrorMessage();
 	}
