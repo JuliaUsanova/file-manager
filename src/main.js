@@ -12,14 +12,23 @@ function main() {
 		input,
 		output
 	});
+	const username = capitalize(getUserName());
 
-	rl.write(`Welcome to the File Manager, ${capitalize(getUserName())}! `);
+	rl.question(`Welcome to the File Manager, ${username}! `);
 
 	rl.on('line', (input) => {
-		handleReply(input);
+		if (input === '.exit') {
+			rl.close();
+		} else if (input.trim().length > 0) {
+			handleReply(input);
 
-		rl.setPrompt(`You are currently in ${cwd()}`);
-		rl.prompt();
+			rl.setPrompt(`You are currently in ${cwd()}`);
+			rl.prompt();
+		}
+	});
+
+	rl.on('close', () => {
+		console.log(`Thank you for using File Manager, ${username}, goodbye!!`);
 	});
 }
 
