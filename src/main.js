@@ -1,26 +1,16 @@
-import * as readline from 'node:readline/promises';
-import { stdin as input, stdout as output, cwd, argv } from 'node:process';
+import { chdir } from 'node:process';
 import { capitalize, getUserName } from './module/utils.mjs';
+import { startingDir } from './module/utils.mjs';
+import { FileManager } from './module/file-manager.mjs';
 
-const handleReply = (reply) => {
-	console.log(`Received: ${reply}`);
-};
-
-// MAIN
 function main() {
-	const rl = readline.createInterface({
-		input,
-		output
-	});
+	const username = capitalize(getUserName());
 
-	rl.write(`Welcome to the File Manager, ${capitalize(getUserName())}! `);
+	chdir(startingDir());
 
-	rl.on('line', (input) => {
-		handleReply(input);
+	const fileManager = new FileManager(username);
 
-		rl.setPrompt(`You are currently in ${cwd()}`);
-		rl.prompt();
-	});
+	fileManager.start();
 }
 
 main();
